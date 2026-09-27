@@ -37,7 +37,7 @@
       return readBytes(file, pos, 9).then(function (b) {
         if (b.length < 4 || b[0] !== 0xFF) throw new UserFacingError(MSG_DAMAGED, 'JPEG: bad marker at ' + pos);
         var m = b[1];
-        if (m === 0xFF) { pos += 1; return next(); }                       // fill byte
+        if (m === 0xFF) { pos += 1; return next(); } // fill byte
         if (SOF.indexOf(m) !== -1) {
           if (b.length < 9) throw new UserFacingError(MSG_DAMAGED, 'JPEG: short frame header');
           return { width: u16be(b, 7), height: u16be(b, 5) };
