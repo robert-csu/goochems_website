@@ -1,0 +1,3 @@
+# file-verifier.js is loaded with an SRI hash, so its bytes must match the committed (LF) version.
+# without this, core.autocrlf rewrites it to CRLF on checkout and the browser refuses to run it.
+*.js text eol=lf
