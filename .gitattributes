@@ -1,0 +1,3 @@
+# inline CSP hashes and SRI integrity hashes are computed on LF bytes; CRLF breaks them
+*.html text eol=lf
+*.js text eol=lf

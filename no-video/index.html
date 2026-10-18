@@ -25,7 +25,7 @@
   <!-- CSP: only our own scripts/styles (pinned by hash), images from this site or data:/blob:, no other network.
        hashes have to be redone whenever the inline script or style changes.
        TODO on the live site: also send as a header with frame-ancestors 'self' -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-asPDIKLc2MDFC8HtbKmIcrcj8AwPGIEs8UVDQdtulvU='; style-src 'sha256-7DFjVYeJeFCLCWKPq87V4DjvluXAP5mNyZLyxxeyzbs='; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Bim6q8+OfxwO2IXQ/oLZQ9/N+WiJYPQ1KCncgvNBMoU='; style-src 'sha256-VWS7Yp519L9xSBgLu57V/ruWYaF8VSA287LJJIMTJRg='; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <style>
     :root {
       --bg: #000;
@@ -37,7 +37,7 @@
       --error: #ff6b6b;
       --radius: 14px;
       --font: "Times New Roman", Times, "Liberation Serif", Tinos, "Noto Serif", serif;
-      --btn-red: #ff0000;
+      --btn-pink: #f323b9;        /* logo pink, refined at runtime */
       --btn-bg: #ffffff;
       --stage-max-h: 62vh;
       --hit: 28px;                /* handle hit area */
@@ -87,7 +87,7 @@
     .app__header { text-align: center; margin-bottom: 1.5rem; }
     .brand-link { display: inline-block; margin: 0 auto 0.5rem; transition: opacity 150ms ease; }
     .brand-link:hover { opacity: 0.85; }
-    .brand-link:focus-visible { outline: 2px solid var(--btn-red); outline-offset: 4px; }
+    .brand-link:focus-visible { outline: 2px solid var(--btn-pink); outline-offset: 4px; }
     .brand {
       display: block;
       width: clamp(96px, 12vw, 128px);
@@ -106,7 +106,7 @@
       border: 0;
       border-radius: 0;
       background: var(--btn-bg);
-      color: var(--btn-red);
+      color: var(--btn-pink);
       font-family: var(--font);
       font-size: 1.25rem;
       font-weight: 400;
@@ -116,9 +116,9 @@
       cursor: pointer;
       transition: background-color 150ms ease, color 150ms ease;
     }
-    .btn:hover { background: var(--btn-red); color: var(--btn-bg); }
-    .btn:focus-visible { outline: 2px solid var(--btn-red); outline-offset: 3px; }
-    .btn:disabled, .btn:disabled:hover { background: var(--btn-bg); color: var(--btn-red); opacity: 0.5; cursor: progress; }
+    .btn:hover { background: var(--btn-pink); color: var(--btn-bg); }
+    .btn:focus-visible { outline: 2px solid var(--btn-pink); outline-offset: 3px; }
+    .btn:disabled, .btn:disabled:hover { background: var(--btn-bg); color: var(--btn-pink); opacity: 0.5; cursor: progress; }
 
     /* download/copy: data-state switches the icon (busy, done) */
     .btn--icon { padding-left: 2.5rem; padding-right: 2.5rem; }
@@ -445,13 +445,13 @@
       border: 0;
       border-radius: 0;
       background: var(--btn-bg);
-      color: var(--btn-red);
+      color: var(--btn-pink);
       cursor: pointer;
       transition: background-color 150ms ease, color 150ms ease;
     }
     .icon-btn svg { width: 22px; height: 22px; }
-    .icon-btn:hover:not(:disabled) { background: var(--btn-red); color: var(--btn-bg); }
-    .icon-btn:focus-visible { outline: 2px solid var(--btn-red); outline-offset: 3px; }
+    .icon-btn:hover:not(:disabled) { background: var(--btn-pink); color: var(--btn-bg); }
+    .icon-btn:focus-visible { outline: 2px solid var(--btn-pink); outline-offset: 3px; }
     .icon-btn:disabled {
       background: transparent;
       color: rgba(255, 255, 255, 0.3);
@@ -483,7 +483,7 @@
       transition: color 150ms ease;
     }
     .socials a:hover { color: var(--ink); }
-    .socials a:focus-visible { outline: 2px solid var(--btn-red); outline-offset: 2px; color: var(--ink); }
+    .socials a:focus-visible { outline: 2px solid var(--btn-pink); outline-offset: 2px; color: var(--ink); }
     .copyright { margin: 0.75rem 0 0; color: var(--ink-muted); font-size: 0.8125rem; }
     @media (max-width: 36rem) { .socials { gap: 0.25rem 1rem; } }
     .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
@@ -934,7 +934,9 @@
       base.h = mod(Math.atan2(sy, sx) * 180 / Math.PI, 360);
       base.s = ss / n;
       base.v = sv / n;
-      els.pinkDot.style.setProperty('--pink', toHex(hsvToRgb(base.h, base.s, base.v)));
+      var logoPink = toHex(hsvToRgb(base.h, base.s, base.v));
+      els.pinkDot.style.setProperty('--pink', logoPink);
+      document.documentElement.style.setProperty('--btn-pink', logoPink);
       if (state.swatch === 'pink') setColor({ h: base.h, s: base.s, v: base.v }, 'preset');
       logoFull = null;
     }
