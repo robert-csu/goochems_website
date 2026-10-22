@@ -25,7 +25,7 @@
   <!-- CSP: only our own scripts/styles (pinned by hash), images and video from this site, data:/blob: images, no other network.
        hashes have to be redone whenever the inline script or style changes.
        TODO on the live site: also send as a header with frame-ancestors 'self' -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-9dpvWvVS/GSYIXDlA298IaDNnfOIIPNACI74JZS5W/8='; style-src 'sha256-3SRrWB8TUWNR6smVvPCAEmsmreRKQoKlGcmPrnziLhU='; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-OKJZUbBQzIUsJgF4tNW8GTECaqtobnm9N771/wwUrPo='; style-src 'sha256-hrPNTvZ8B6sIeEijxWXpdKA/haqMMtvXEvEwyYpaBWo='; img-src 'self' data: blob:; media-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <style>
     :root {
       --bg: #000;
@@ -474,12 +474,66 @@
     #editor[data-step="photo"] .logo,
     #editor[data-step="photo"] #stage-chrome,
     #editor[data-step="photo"] .swatches,
+    #editor[data-step="photo"] .opacity,
     #editor[data-step="photo"] #download,
     #editor[data-step="photo"] #copy,
     #editor[data-step="photo"] #reset,
     #editor:not([data-step="photo"]) #place-logo { display: none; }
 
     .stage-hint { margin: 1rem 0 1.25rem; text-align: center; color: var(--ink-muted); font-size: 0.875rem; }
+
+    .opacity {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      color: var(--ink-muted);
+      font-size: 0.9375rem;
+    }
+    /* the logo is the thumb. the thumb's centre only travels from 20px in to 20px from the end,
+       so the bar is drawn 20px in from each end (and the input is 40px wider) to line the two up.
+       --fill (0-1) comes from js */
+    .opacity input {
+      --fill: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      width: calc(min(16rem, 55%) + 40px);
+      height: 44px;
+      margin: 0 -0.5rem;
+      background: transparent;
+      cursor: pointer;
+    }
+    .opacity input:focus-visible { outline: 2px solid var(--btn-pink); outline-offset: 3px; }
+    .opacity input::-webkit-slider-runnable-track {
+      height: 4px;
+      background:
+        linear-gradient(#fff, #fff) 20px 0 / calc((100% - 40px) * var(--fill)) 100% no-repeat,
+        linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)) 20px 0 / calc(100% - 40px) 100% no-repeat;
+    }
+    .opacity input::-moz-range-track {
+      height: 4px;
+      background:
+        linear-gradient(#fff, #fff) 20px 0 / calc((100% - 40px) * var(--fill)) 100% no-repeat,
+        linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)) 20px 0 / calc(100% - 40px) 100% no-repeat;
+    }
+    .opacity input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 40px;
+      height: 40px;
+      margin-top: -18px;
+      border: 0;
+      background: url("logo/goochems-logo.webp") center / contain no-repeat;
+    }
+    .opacity input::-moz-range-thumb {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 0;
+      background: url("logo/goochems-logo.webp") center / contain no-repeat;
+    }
+    .opacity output { min-width: 4ch; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
 
     .site-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--line); text-align: center; }
     .socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1.75rem; margin: 0; padding: 0; list-style: none; }
@@ -514,6 +568,8 @@
       .frame__lip { border-color: CanvasText; }
       .tbox, .tbox::before { border-color: Highlight; background: Highlight; }
       .dot { forced-color-adjust: none; }
+      .opacity input::-webkit-slider-runnable-track { background: ButtonText; }
+      .opacity input::-moz-range-track { background: ButtonText; }
     }
   </style>
 </head>
@@ -658,6 +714,11 @@
         </div>
         </div>
         </div>
+        <div class="opacity">
+          <label for="opacity">Logo opacity</label>
+          <input type="range" id="opacity" min="10" max="100" step="1" value="100" aria-valuetext="100%">
+          <output id="opacity-value" for="opacity" aria-hidden="true">100%</output>
+        </div>
         </div>
       </div>
 
@@ -748,7 +809,8 @@
       popover: $('color-popover'),
       wheel: $('wheel'), wheelCanvas: $('wheel-canvas'), wheelHandle: $('wheel-handle'),
       vbar: $('vbar'), vbarThumb: $('vbar-thumb'),
-      swatch: $('swatch'), hex: $('hex'), hexError: $('hex-error')
+      swatch: $('swatch'), hex: $('hex'), hexError: $('hex-error'),
+      opacity: $('opacity'), opacityValue: $('opacity-value')
     };
 
     var state = {
@@ -765,6 +827,7 @@
       color: { h: CONFIG.presets.pink.h, s: CONFIG.presets.pink.s, v: CONFIG.presets.pink.v },
       swatch: 'pink',     // 'pink' | 'red' | 'black' | 'white' | 'custom'
       lastCustom: null,
+      opacity: 1,         // logo, 0.1-1
       version: 0,         // bumped on every edit
       cached: null,       // { version, file }
       savedVersion: null, // version at last download/copy
@@ -1247,6 +1310,22 @@
       if (e.key === 'Enter') { e.preventDefault(); els.hex.dispatchEvent(new Event('change')); }
     });
 
+    // logo opacity
+    function setOpacity(v) {
+      state.opacity = clamp(v, 0.1, 1);
+      var pct = Math.round(state.opacity * 100);
+      els.opacity.value = String(pct);
+      els.opacity.style.setProperty('--fill', String((pct - 10) / 90));
+      els.opacity.setAttribute('aria-valuetext', pct + '%');
+      els.opacityValue.textContent = pct + '%';
+      els.logo.style.opacity = String(state.opacity);
+    }
+
+    els.opacity.addEventListener('input', function () {
+      setOpacity(els.opacity.value / 100);
+      bump();
+    });
+
     // photo decoding
     function decodeWithImageElement(file) {
       return new Promise(function (resolve, reject) {
@@ -1438,6 +1517,7 @@
       t.x = 0.5;
       t.y = CONFIG.defaultY;
       t.rot = 0;
+      setOpacity(1);
       state.selected = 'logo';
       changed('logo');
       bump();
@@ -1747,6 +1827,7 @@
       ctx.save();
       ctx.translate(L.x * ow, L.y * oh);
       ctx.rotate(L.rot * Math.PI / 180);
+      ctx.globalAlpha = state.opacity;
       ctx.drawImage(getExportLogo(lw), -lw / 2, -lh / 2, lw, lh);
       ctx.restore();
 
@@ -1924,7 +2005,7 @@
       var c = state.color, lc = state.lastCustom;
       return {
         logo: copyT(state.t.logo), photo: copyT(state.t.photo),
-        color: { h: c.h, s: c.s, v: c.v }, swatch: state.swatch,
+        color: { h: c.h, s: c.s, v: c.v }, swatch: state.swatch, opacity: state.opacity,
         lastCustom: lc ? { h: lc.h, s: lc.s, v: lc.v } : null
       };
     }
@@ -1970,6 +2051,7 @@
       state.t.photo = copyT(s.photo);
       state.lastCustom = s.lastCustom ? { h: s.lastCustom.h, s: s.lastCustom.s, v: s.lastCustom.v } : null;
       state.swatch = s.swatch;
+      setOpacity(s.opacity);
       setColor({ h: s.color.h, s: s.color.s, v: s.color.v }, 'restore');// also bumps the version
       constrain('logo');
       constrain('photo');
@@ -2007,7 +2089,7 @@
     document.addEventListener('keydown', function (e) {
       if (els.editor.hidden || !(e.ctrlKey || e.metaKey) || e.altKey) return;
       // let text fields do their own undo
-      if (e.target && e.target.closest && e.target.closest('input, textarea, [contenteditable]')) return;
+      if (e.target && e.target.closest && e.target.closest('input:not([type="range"]), textarea, [contenteditable]')) return;
       var k = e.key.toLowerCase();
       if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
       else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
